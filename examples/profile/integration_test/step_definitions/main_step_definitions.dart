@@ -13,9 +13,3 @@ abstract class MainStepDefinitions {
         ),
       ];
 }
-
-
-/// tester.tap - нажатие
-/// tester.enterText - ввести текст
-/// tester.scrollUntilVisible - скроллить, пока не станет виден нужный виджет
-/// tester.widget<Тип_Виджета> - получить конкретный виджет

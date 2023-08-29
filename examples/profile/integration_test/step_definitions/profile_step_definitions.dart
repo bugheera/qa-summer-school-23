@@ -6,6 +6,14 @@ import 'package:gherkin/gherkin.dart';
 import '../../test_screen/screens/main_test_screen.dart';
 import '../../test_screen/screens/profile_test_screen.dart';
 
+late String savedName;
+late String savedSurname;
+late String savedSecondName;
+late String savedBirthDate;
+late String savedCity;
+late String savedCheckbox;
+late String savedAbout;
+
 abstract class ProfileStepDefinitions {
   static StepDefinitionGeneric nextButton = when<FlutterWidgetTesterWorld>(
     RegExp(r'Я перехожу далее$'),
@@ -20,6 +28,7 @@ abstract class ProfileStepDefinitions {
         when1<String, FlutterWidgetTesterWorld>(
           RegExp(r'Я указываю фамилию {string}$'),
           (surname, context) async {
+            savedSurname = surname;
             final tester = context.world.rawAppDriver;
             await tester.pumpAndSettle();
             await tester.enterText(ProfileTestScreen.surnameField, surname);
@@ -29,6 +38,7 @@ abstract class ProfileStepDefinitions {
         when1<String, FlutterWidgetTesterWorld>(
           RegExp(r'Я указываю имя {string}$'),
           (name, context) async {
+            savedName = name;
             final tester = context.world.rawAppDriver;
             await tester.pumpAndSettle();
             await tester.enterText(ProfileTestScreen.nameField, name);
@@ -38,6 +48,7 @@ abstract class ProfileStepDefinitions {
         when1<String, FlutterWidgetTesterWorld>(
           RegExp(r'Я указываю отчество {string}$'),
           (secondName, context) async {
+            savedSecondName = secondName;
             final tester = context.world.rawAppDriver;
             await tester.pumpAndSettle();
             await tester.enterText(
@@ -50,6 +61,7 @@ abstract class ProfileStepDefinitions {
         when1<String, FlutterWidgetTesterWorld>(
           RegExp(r'Я указываю дату рождения {string}$'),
           (birthdate, context) async {
+            savedBirthDate = birthdate;
             final tester = context.world.rawAppDriver;
             await tester.pumpAndSettle();
             tester
@@ -63,6 +75,7 @@ abstract class ProfileStepDefinitions {
         when1<String, FlutterWidgetTesterWorld>(
           RegExp(r'Я выбираю город {string}$'),
           (city, context) async {
+            savedCity = city;
             final tester = context.world.rawAppDriver;
             await tester.pumpAndSettle();
             tester
@@ -76,6 +89,7 @@ abstract class ProfileStepDefinitions {
         when1<String, FlutterWidgetTesterWorld>(
           RegExp(r'Я выбираю {string} из интересов$'),
           (selectedCheckbox, context) async {
+            savedCheckbox = selectedCheckbox;
             final tester = context.world.rawAppDriver;
             await tester.pumpAndSettle();
             await tester.scrollUntilVisible(
@@ -90,6 +104,7 @@ abstract class ProfileStepDefinitions {
         when1<String, FlutterWidgetTesterWorld>(
           RegExp(r'Я заполняю заметку о себе {string}$'),
           (note, context) async {
+            savedAbout = note;
             final tester = context.world.rawAppDriver;
             await tester.pumpAndSettle();
             await tester.enterText(
@@ -107,7 +122,7 @@ abstract class ProfileStepDefinitions {
             await tester.pumpAndSettle();
           },
         ),
-         when<FlutterWidgetTesterWorld>(
+        when<FlutterWidgetTesterWorld>(
           RegExp(r'Я перехожу к редактированию профиля$'),
           (context) async {
             final tester = context.world.rawAppDriver;
@@ -115,11 +130,70 @@ abstract class ProfileStepDefinitions {
           },
         ),
         then<FlutterWidgetTesterWorld>(
-          RegExp(r'$'),
+          RegExp(r'Я вижу заполненные поля ФИО$'),
+          (context) async {
+            final tester = context.world.rawAppDriver;
+            await tester.pumpAndSettle();
+            final fields = tester.widgetList<TextField>(find.byType(TextField));
+            expect(fields.length, equals(4));
+
+            expect(fields.any((e) => e.controller?.text == savedName), isTrue);
+            expect(
+              fields.any((e) => e.controller?.text == savedSurname),
+              isTrue,
+            );
+            expect(
+              fields.any((e) => e.controller?.text == savedSecondName),
+              isTrue,
+            );
+          },
+        ),
+        then<FlutterWidgetTesterWorld>(
+          RegExp(r'Я вижу заполненное поле даты рождения$'),
           (context) async {
             final tester = context.world.rawAppDriver;
             final fields = tester.widgetList<TextField>(find.byType(TextField));
-            expect(fields.every((e) => e.controller?.text.isNotEmpty ?? false), isTrue);
+            expect(
+              fields.any((e) => e.controller?.text == savedBirthDate),
+              isTrue,
+            );
+          },
+        ),
+        nextButton,
+        then<FlutterWidgetTesterWorld>(
+          RegExp(r'Я вижу заполненное поле города$'),
+          (context) async {
+            final tester = context.world.rawAppDriver;
+            await tester.pump();
+            expect(
+              tester.widget<TextField>(find.byType(TextField)).controller?.text,
+              equals(savedCity),
+            );
+          },
+        ),
+        nextButton,
+        then<FlutterWidgetTesterWorld>(
+          RegExp(r'Я вижу выбранные интересы$'),
+          (context) async {
+            final tester = context.world.rawAppDriver;
+            await tester.pump();
+            await tester.scrollUntilVisible(
+              ProfileTestScreen.checkbox(savedCheckbox),
+              100,
+            );
+            expect(ProfileTestScreen.checkbox(savedCheckbox), findsOneWidget);
+          },
+        ),
+        nextButton,
+        then<FlutterWidgetTesterWorld>(
+          RegExp(r'Я вижу заполненное поле заметки о себе$'),
+          (context) async {
+            final tester = context.world.rawAppDriver;
+            await tester.pump();
+            expect(
+              tester.widget<TextField>(find.byType(TextField)).controller?.text,
+              equals(savedAbout),
+            );
           },
         ),
       ];
